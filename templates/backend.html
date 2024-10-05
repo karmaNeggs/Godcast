@@ -1,0 +1,156 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Podcast Backend Console</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='be_styles.css') }}">
+</head>
+<body>
+    <h1 class="header">AI Podcast Backend Console</h1>
+    <div class="container">
+        <!-- Section 1: Insert Podcast -->
+        <div class="section section1">
+            <h2>Insert Podcast</h2>
+            <form action="/add_podcast" method="POST" class="form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pc_begin_ts">Podcast Begin Timestamp:</label>
+                        <input type="datetime-local" id="pc_begin_ts" name="pc_begin_ts" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pc_id">Podcast ID:</label>
+                        <input type="text" id="pc_id" name="pc_id" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pc_topic">Podcast Topic:</label>
+                        <input type="text" id="pc_topic" name="pc_topic" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="num_participants">Number of Participants (Max 5):</label>
+                        <input type="number" id="num_participants" name="num_participants" min="2" max="5" required>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="pc_topic_context">Podcast Topic Context:</label>
+                    <textarea id="pc_topic_context" name="pc_topic_context" rows="4" required></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>Participants:</label>
+                    <div class="participants">
+                        {% for i in range(1,6) %}
+                            <select name="participant_{{ i }}" {% if i <= 2 %}required{% endif %}>
+                                <option value="" disabled selected>Select Participant {{ i }}</option>
+                                {% for entity in entities %}
+                                    <option value="{{ entity }}">{{ entity }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button type="submit" class="btn">Add Podcast</button>
+            </form>
+        </div>
+        
+        <!-- Section 2: Podcast Roster -->
+        <div class="section section2">
+            <h2>Podcast Roster</h2>
+            <form action="/delete_podcast" method="POST" class="form delete-form">
+                <label for="delete_pc_id">Delete Podcast by ID:</label>
+                <input type="text" id="delete_pc_id" name="delete_pc_id" required>
+                <button type="submit" class="btn delete-btn">Delete Podcast</button>
+            </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Begin Timestamp</th>
+                        <th>Podcast ID</th>
+                        <th>Topic</th>
+                        <th>Participants</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for podcast in podcasts %}
+                    <tr>
+                        <td>{{ podcast.pc_begin_ts }}</td>
+                        <td>{{ podcast.pc_id }}</td>
+                        <td>{{ podcast.pc_topic }}</td>
+                        <td>
+                            {% for participant in podcast.pc_participants %}
+                                {{ participant.entity_name }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <form action="/delete_podcast" method="POST" class="inline-form">
+                                <input type="hidden" name="delete_pc_id" value="{{ podcast.pc_id }}">
+                                <button type="submit" class="btn delete-btn">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Section 3: Manage Entities -->
+    <div class="section section3">
+        <h2>Manage Entities</h2>
+        <div class="entity-forms">
+            <!-- Add Entity Form -->
+            <form action="/add_entity" method="POST" class="form entity-form">
+                <h3>Add Entity</h3>
+                <label for="entity_id">Entity ID:</label>
+                <input type="text" id="entity_id" name="entity_id" required>
+                
+                <label for="entity_name">Entity Name:</label>
+                <input type="text" id="entity_name" name="entity_name" required>
+                
+                <label for="entity_qualities">Entity Qualities:</label>
+                <textarea id="entity_qualities" name="entity_qualities" rows="3" required></textarea>
+                
+                <label for="photo_url">Photo URL:</label>
+                <input type="text" id="photo_url" name="photo_url">
+                
+                <label for="entity_url">Entity URL:</label>
+                <input type="text" id="entity_url" name="entity_url">
+                
+                <button type="submit" class="btn">Add Entity</button>
+            </form>
+            
+            <!-- Update Entity Form -->
+            <form action="/update_entity" method="POST" class="form entity-form">
+                <h3>Update Entity</h3>
+                <label for="update_entity_id">Entity ID:</label>
+                <input type="text" id="update_entity_id" name="update_entity_id" required>
+                
+                <label for="update_entity_name">Entity Name:</label>
+                <input type="text" id="update_entity_name" name="update_entity_name">
+                
+                <label for="update_entity_qualities">Entity Qualities:</label>
+                <textarea id="update_entity_qualities" name="update_entity_qualities" rows="3"></textarea>
+                
+                <label for="update_photo_url">Photo URL:</label>
+                <input type="text" id="update_photo_url" name="update_photo_url">
+                
+                <label for="update_entity_url">Entity URL:</label>
+                <input type="text" id="update_entity_url" name="update_entity_url">
+                
+                <button type="submit" class="btn">Update Entity</button>
+            </form>
+            
+            <!-- Delete Entity Form -->
+            <form action="/delete_entity" method="POST" class="form entity-form delete-entity-form">
+                <h3>Delete Entity</h3>
+                <label for="delete_entity_id">Entity ID:</label>
+                <input type="text" id="delete_entity_id" name="delete_entity_id" required>
+                <button type="submit" class="btn delete-btn">Delete Entity</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

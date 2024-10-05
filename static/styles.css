@@ -1,0 +1,223 @@
+/* Ensure the container takes full viewport height */
+body, html {
+    height: 100%;
+    /* font-family: 'IMPACT', sans-serif; Modern font */
+    font-family: "Poppins", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+
+/* Container for layout */
+.container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    /* flex-direction: row; */
+    height: calc(100vh - 200px); /* Adjust based on header height */
+    padding: 15px;
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+/* Default styles for mobile (stacked vertically) */
+.left-section, .right-section {
+    width: 100%; /* Both sections take up full width on mobile */
+    padding: 20px;
+    margin: 5px;
+    box-sizing: border-box; /* Include padding and border in the width calculation */
+}
+
+.left-section {
+    background: linear-gradient(#ffdae4, #ffebbe);
+    color: #000000;
+    border-radius: 10px;
+    overflow-y: auto;
+}
+
+.right-section {
+    background: linear-gradient(#fb1251, #ffb915);
+    color: white;
+    border-radius: 10px;
+    overflow-y: auto;
+}
+
+/* TITLE Information Styles */
+h1 {
+
+    font-size: 72px;
+    background: -webkit-linear-gradient(#ff1956, rgb(255, 34, 0)0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    /* font-family: "Honk", sans-serif; */
+    font-optical-sizing: auto;
+    font-style: normal;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 15px;
+    font-size: 3.0em;
+    font-weight: 700; /* Change to bold */
+    
+    /* color: #bc2f2f; red */
+}
+
+
+h2 {
+    margin-left: 15px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 0.9em;
+    font-weight: 400; /* Change to bold */
+    color: #b51904e7; /* red */
+}
+
+
+/* Podcast Information Styles */
+.podcast-info h3, .podcast-info h4 {
+    font-size: 1.6em;
+    font-weight: bold;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    background: -webkit-linear-gradient(#d20135, #e78a10);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    /* color: #282702; Ensure text is visible on background */
+}
+
+.podcast-info ul {
+    font-size: 1em;
+    list-style-type: circle;
+    padding-left: 20px;
+    font-weight: bold; /* Bold font for participants list */
+    
+    background: -webkit-linear-gradient(#d82f04, #dd7d00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Chat Box Styles */
+.chatBox {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+#recentComments {
+    height: 200px;
+    overflow-y: scroll;
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.commentBox {
+    background-color: #ff0033d0;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* Input and Select Styles */
+input[type="text"], input[type="email"], select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: none;
+    box-sizing: border-box;
+    font-size: 1em;
+    font-weight: bold; /* Bold font for inputs */
+}
+
+/* Button Styles */
+button {
+    padding: 10px;
+    background-color: grey; /* Changed to a modern blue color */
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: bold; /* Bold text on buttons */
+    transition: background-color 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #0c9a2d;; /* Darker blue on hover */
+}
+
+button:disabled {
+    background-color: rgb(255, 174, 0);
+    cursor: not-allowed;
+}
+
+/* Typewriter Animation */
+.typewriter {
+    width: 100%;
+    overflow: hidden; /* Ensures the text is not revealed until the animation */
+}
+
+.typewriter h3 {
+    white-space: pre-wrap; /* Allows text to wrap and respect newlines */
+    word-wrap: break-word;
+    font-weight: bold; /* Bold text */
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 2.2em;
+    color: #f22847; /* text */
+}
+
+/* Responsive Design
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left-section, .right-section {
+
+        margin-bottom: 20px;
+    }
+} */
+
+/* Responsive Design Media query for larger screens */
+@media screen and (min-width: 768px) {
+    .container {
+        flex-wrap: nowrap; /* Horizontal stacking */
+    }
+
+    .left-section, .right-section {
+        height: auto; /* Both sections maintain equal height */
+        margin: 5px;
+    }
+
+    .left-section {
+        flex: 2.5; /* Left section takes up 2.5 times more space than the right */
+        width: auto;
+    }
+
+    .right-section {
+        flex: 1; /* Right section takes up less space */
+        width: auto;
+    }
+}
+
+/* Feedback Message Styling */
+#feedbackMessage {
+    margin-top: 10px;
+    font-size: 0.9em;
+    font-weight: bold; /* Bold feedback messages */
+}
+
+/* Start Podcast Button Styling */
+#startPodcastBtn {
+    background-color: #ff2c2cf7; /* Green color */
+    position: fixed;
+    top: 30px;
+    right: 20px;
+}
+
+#startPodcastBtn:hover:not(:disabled) {
+    background-color: grey; /* Darker green on hover */
+}

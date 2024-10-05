@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@100;300;400;700&display=swap" rel="stylesheet"> -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <title> Live Podcast</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Page Title -->
+    <h1>  GODcast_ </h1>
+    <h2>  _Community Powered Discussions </h2>
+
+    <div class="container">
+        <!-- Large Left Section -->
+        <div class="left-section">
+            <!-- Podcast Information -->
+            <div class="podcast-info">
+                <h3>Topic: {{ pc_topic }}</h3>
+                {% if participants %}
+                <h3>Participants:</h3>
+                <ul>
+                    {% for participant in participants %}
+                    <li>{{ participant }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <h4>No Participants</h4>
+                {% endif %}
+            </div>
+
+            <!-- Typewriter Text -->
+            <div class="typewriter">
+                <h3 id="dynamicText">Click "start" to tune in to podcast...</h3>
+            </div>
+        </div>
+
+        <!-- <div>       </div> -->
+
+        <!-- Right Chat Section -->
+        <div class="right-section">
+            <h3>Participate Now!</h3>
+
+            <!-- Input Fields for Email and Entity (Dropdown) -->
+            <div id="chat-input">
+                <label for="entity"> </label>
+                <select id="entity" required>
+                    <option value="">Select a community</option>
+                    <!-- Options populated dynamically -->
+                    {% for entity in entity_list %}
+                    <option value="{{ entity }}">{{ entity }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="email"> </label>
+                <input type="email" id="email" placeholder="E-mail to prove you're human ¯\_(ツ)_/¯ " required>
+
+                {% if pc_topic != "No Active Podcast" %}
+                <button id="enableChatBtn" onclick="enableChat()">Enable</button>
+                {% else %}
+                <button id="enableChatBtn" disabled>No Active Podcast</button>
+                {% endif %}
+            </div>
+
+            <!-- Chat Section -->
+            <div id="chatBox" class="chatBox">
+                <div id="recentComments">
+                    <!-- Comments will appear here -->
+                </div>
+                {% if pc_topic != "No Active Podcast" %}
+                <input type="text" id="commentInput" placeholder="Type your comment..." disabled>
+                <button id="sendCommentBtn" onclick="postComment()" disabled>Submit my comment</button>
+                {% else %}
+                <input type="text" id="commentInput" placeholder="No active podcast to comment on..." disabled style="background-color: #ccc;">
+                <button id="sendCommentBtn" disabled>Send</button>
+                {% endif %}
+                <div id="feedbackMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
