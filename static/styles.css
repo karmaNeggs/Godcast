@@ -15,7 +15,7 @@ body, html {
     flex-wrap: wrap;
     /* flex-direction: row; */
     height: calc(100vh - 200px); /* Adjust based on header height */
-    padding: 15px;
+    padding: 0.5vh;
     box-sizing: border-box;
     align-items: stretch;
 }
@@ -23,8 +23,8 @@ body, html {
 /* Default styles for mobile (stacked vertically) */
 .left-section, .right-section {
     width: 100%; /* Both sections take up full width on mobile */
-    padding: 20px;
-    margin: 5px;
+    padding: 2vw;
+    margin: 1vw;
     box-sizing: border-box; /* Include padding and border in the width calculation */
 }
 
@@ -46,9 +46,7 @@ body, html {
 h1 {
 
     font-size: 72px;
-    background: -webkit-linear-gradient(#ff1956, rgb(255, 34, 0)0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color:#ff193b;
     /* font-family: "Honk", sans-serif; */
     font-optical-sizing: auto;
     font-style: normal;
@@ -169,6 +167,26 @@ button:disabled {
     color: #f22847; /* text */
 }
 
+table {
+    width: 100%;
+    border-radius: 10px;
+    border-collapse:separate;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #f0b6b6;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: left;
+    background-color: #f7697336;
+}
+
+th {
+    background-color: #ff0011e6;
+    color: white;
+}
+
 /* Responsive Design
 @media (max-width: 768px) {
     .container {
@@ -193,7 +211,7 @@ button:disabled {
     }
 
     .left-section {
-        flex: 2.5; /* Left section takes up 2.5 times more space than the right */
+        flex: 2; /* Left section takes up 2 times more space than the right */
         width: auto;
     }
 
@@ -221,3 +239,48 @@ button:disabled {
 #startPodcastBtn:hover:not(:disabled) {
     background-color: grey; /* Darker green on hover */
 }
+
+
+/* chips CSS */
+
+.chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1vh;
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    background-color: hsla(0, 0%, 100%, 0.196);
+    border-radius: 20px;
+    padding: 5px 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.chip:hover {
+    background-color: #d0d0d0;
+}
+
+.chip-icon {
+    background-color: #6200ea;
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.chip-label {
+    font-size: 1em;
+    font-weight: 500;
+    color: #333;
+}
+

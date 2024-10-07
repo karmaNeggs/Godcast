@@ -4,11 +4,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Podcast Backend Console</title>
+    <title>Godcast Backend Console</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='be_styles.css') }}">
 </head>
 <body>
-    <h1 class="header">AI Podcast Backend Console</h1>
+    <h1 class="header">Godcast Backend Console</h1>
     <div class="container">
         <!-- Section 1: Insert Podcast -->
         <div class="section section1">
@@ -144,7 +144,7 @@
             </form>
             
             <!-- Delete Entity Form -->
-            <form action="/delete_entity" method="POST" class="form entity-form delete-entity-form">
+            <form action="/delete_entity" method="POST" class="form entity-form">
                 <h3>Delete Entity</h3>
                 <label for="delete_entity_id">Entity ID:</label>
                 <input type="text" id="delete_entity_id" name="delete_entity_id" required>

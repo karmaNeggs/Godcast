@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <title> Live Podcast</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Page Title -->
+    <h1>  GODcast_ </h1>
+    <h2>  _Community Powered Discussions </h2>
+
+    <div class="container">
+        <!-- Large Left Section -->
+        <div class="right-section">
+
+            <h1 style="font-size: 6vh;color: white">Emergent<br> Podcasts<br> <br> powered by </h1>
+
+            <h2 style="font-size: 3vh;color: white">Our communities:<br> <br></h2>
+
+            <div class="chips-container" id="chipsContainer"></div>
+
+            <script>
+
+                // // Function to generate a random hex color
+                // function getRandomColor() {
+                //     const letters = '0123456789ABCDEF';
+                //     let color = '#';
+                //     for (let i = 0; i < 6; i++) {
+                //         color += letters[Math.floor(Math.random() * 16)];
+                //     }
+                //     return color;
+                // }
+
+                fetch('/get_global_entity_list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const container = document.getElementById('chipsContainer');
+
+                        // Loop through the entity list and create chips
+                        data.forEach(entity => {
+                            // Create chip element
+                            const chip = document.createElement('div');
+                            chip.className = 'chip';
+
+                            // Create icon with the first letter capitalized
+                            const icon = document.createElement('div');
+                            icon.className = 'chip-icon';
+                            icon.textContent = entity[0].toUpperCase();
+
+                            // Assign random color to the icon background
+                            icon.style.backgroundColor = getRandomColor();
+
+                            // Create chip label
+                            const label = document.createElement('div');
+                            label.className = 'chip-label';
+                            label.textContent = entity;
+
+                            // Append icon and label to the chip
+                            chip.appendChild(icon);
+                            chip.appendChild(label);
+
+                            // Append chip to the container
+                            container.appendChild(chip);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching the entity list:', error);
+                    });
+
+            </script>
+
+
+        </div>
+
+
+        <!-- Right Chat Section -->
+        <div class="left-section">
+
+            <!-- Podcast Information -->
+
+            <h1 style="font-size: 4.5vh;">Podcast Roster</h1>
+            <table style="font-size: 14px;">
+                <thead>
+                    <tr>
+                        <th>Scheduled</th>
+                        <th>Topic</th>
+                        <th>Panelists</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for podcast in podcasts %}
+                    <tr>
+                        <td>{{ podcast.pc_begin_ts }}</td>
+                        <td>{{ podcast.pc_topic }}</td>
+                        <td>
+                            {% for participant in podcast.pc_participants %}
+                                {{ participant.entity_name }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('static', filename= podcast.pc_id + 'transcript.txt') }}" class="btn">
+                                Transcript
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -4,26 +4,38 @@ async function fetchAndPlayAudio() {
     try {
         let timestamp = new Date().getTime();
 
-        // Fetch and play the actual audio file
-        audio.src = `/get_audio_file?ts=${timestamp}`;
-        await audio.play();
-
-        // Fetch and display the text file
-        const response = await fetch(`/get_text_file?ts=${timestamp}`);
-        const newText = await response.text();
-        document.getElementById('dynamicText').innerHTML = '';
-        typeWriter(newText, 0);
-
         // Fetch the audio duration
-        const duration = await fetch(`/serve_audio?ts=${timestamp}`);
-        const data = await duration.json();  // Parse the JSON response
+        const durationResponse = await fetch(`/serve_audio?ts=${timestamp}`);
+        const data = await durationResponse.json();  // Parse the JSON response
+
+        const nextRunTime = new Date(data.next_run_time_utc);  // Parse the next run time correctly
+        const now = new Date();  // Current time as a Date object
+
+        const timeUntilNextRun = nextRunTime.getTime() - now.getTime();  // Calculate time difference in milliseconds
 
         // Schedule the next audio fetch based on the duration
-        setTimeout(fetchAndPlayAudio, data.next_run_in_sec * 1000);
+        if (timeUntilNextRun < 10000) {
+
+            setTimeout(fetchAndPlayAudio, 2000);
+        } else {
+            setTimeout(fetchAndPlayAudio, timeUntilNextRun);
+
+            // Fetch and play the actual audio file
+            audio.src = `/get_audio_file?ts=${timestamp}`;
+            await audio.play();
+
+            // Fetch and display the text file
+            const response = await fetch(`/get_text_file?ts=${timestamp}`);
+            const newText = await response.text();
+            document.getElementById('dynamicText').innerHTML = '';
+            typeWriter(newText, 0);
+        }
+
     } catch (error) {
         console.error('Error rendering podcast:', error);
     }
 }
+
 
 
 // Typewriter effect function
@@ -48,27 +60,30 @@ function typeWriter(text, i, callback) {
 // Function to initialize audio and text on page load
 window.onload = function() {
     // Initiate user interaction for audio playback only if there's an active podcast
-    const startButton = document.createElement('button');
-    startButton.innerText = 'Start';
-    startButton.id = 'startPodcastBtn';
-    startButton.style.position = 'absolute';
-    startButton.style.top = '20px';
-    startButton.style.right = '25px';
-    startButton.style.padding = '10px 20px';
-    startButton.style.fontSize = '1em';
-    startButton.style.fontWeight = 'bold';
-    document.body.appendChild(startButton);
+    if (window.location.pathname === '/') {
+        const startButton = document.createElement('button');
+        startButton.innerText = 'Start';
+        startButton.id = 'startPodcastBtn';
+        startButton.style.position = 'absolute';
+        startButton.style.top = '20px';
+        startButton.style.right = '25px';
+        startButton.style.padding = '10px 20px';
+        startButton.style.fontSize = '1em';
+        startButton.style.fontWeight = 'bold';
+        document.body.appendChild(startButton);
 
-    startButton.onclick = function() {
-        fetchAndPlayAudio();
-        // updateText();
-        // Remove the start button after initiating
-        startButton.remove();
-        startButton.disabled = true;
-        // setInterval(fetchAndPlayAudio, 26000);
-        // setInterval(updateText, 26000);
+        startButton.onclick = function() {
+            fetchAndPlayAudio();
+            // updateText();
+            // Remove the start button after initiating
+            startButton.remove();
+            startButton.disabled = true;
+            // setInterval(fetchAndPlayAudio, 26000);
+            // setInterval(updateText, 26000);
+        }
     }
 }
+
 
 
 // Email validation function
@@ -130,6 +145,7 @@ function displayComment(comment, timestamp) {
 setInterval(fetchComments, 40000);  // Poll the server every 40 seconds
 
 
+
 // Function to post comment
 async function postComment() {
     const comment = document.getElementById('commentInput').value;
@@ -181,4 +197,15 @@ async function postComment() {
             }, 5000);
         }
     }
+}
+
+
+// Function to generate a random hex color
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
 }

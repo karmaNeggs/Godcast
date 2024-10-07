@@ -3,6 +3,7 @@ import logging
 from connection_imports import collect_variables, getnextresponse, update_context, update_conclusion
 import json
 from random import randrange
+import time
 
 
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +17,7 @@ participant = []
 accent = ['co.uk','co.in','com.ng','us', 'ca']
 
 num_participants = 0 
-pc_topic  = ""
+# pc_topic  = ""
 pc_topic_context = ""
 pc_participants = []
 pc_comment_context = []
@@ -41,7 +42,7 @@ def run_podcast(pc_id):
     global max_rounds
 
     try:
-        if is_podcast_running > 0 and is_podcast_running <= max_rounds:
+        if is_podcast_running > 0 and is_podcast_running < max_rounds:
             logger.info("Podcast is currently running.")
 
         # Fetch prompt to give to GPT
@@ -56,14 +57,17 @@ def run_podcast(pc_id):
 
             is_podcast_running += 1
 
-            # Check if contexts need updating
+            # Check if contexts need updating 
             if is_podcast_running % 4 == 0:
-                participants_data, pc_podcast_context = update_context(pc_id, participants_data, pc_topic_context, pc_podcast_context, podcast_conversation)
+                try:
+                    participants_data, pc_podcast_context = update_context(pc_id, participants_data, pc_topic_context, pc_podcast_context, podcast_conversation)
+                except Exception as e:
+                    logger.error(f"Error in run_podcast: {e}")
             else:
                 pass
 
         #conclude podcast    
-        elif is_podcast_running > max_rounds:
+        elif is_podcast_running == max_rounds:
             # set is_podcast_running to 0 by function return val
             nx_response, is_podcast_running_flag = update_conclusion(pc_id, participants_data, pc_topic_context, pc_podcast_context, podcast_conversation)
             Speaker = 'Godcast'
@@ -95,12 +99,14 @@ def run_podcast(pc_id):
 
             else:
                 logger.info("No active podcast to generate inputs.")
-                return
+                
+                return 0
 
+    #finally save the collected conversation
             
         if not participants_data:
             logger.error("No participants data available.")
-            return
+            return 0
 
         else:
 
@@ -109,7 +115,7 @@ def run_podcast(pc_id):
 
             # Generate audio using gTTS save audio using gTTS as 'audio.mp3'
             tts = gTTS(nx_response, lang = 'en', tld = accent[participant_index] , slow=False)
-            tts.save('audio.mp3')
+            tts.save('static/audio.mp3')
             logger.info("Audio file updated with new speech.")
 
             # Generate text and save to 'typewrite.txt'
@@ -122,10 +128,9 @@ def run_podcast(pc_id):
 
             # update podcast conversation list
             podcast_conversation.append(latest_argument_to_respond)
-            return
 
-            if Speaker == 'Godcast':
-                time.sleep(50)
+            return 1
+
 
     except Exception as e:
         logger.error(f"Error in run_podcast: {e}")

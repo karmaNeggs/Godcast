@@ -6,8 +6,9 @@ import logging
 import openai
 from flask import jsonify
 
+
 # Initialize OpenAI API
-openai.api_key = os.environ.get('OPENAI_API_KEY', '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')  # Replace with your actual API key
+openai.api_key = os.environ.get('OPENAI_API_KEY', '')  # Replace with your actual API key
 model_name = "gpt-4o-mini"  # Ensure this matches the actual model name
 
 logging.basicConfig(level=logging.INFO)
@@ -32,25 +33,26 @@ def db_connector():
         logger.error(f"Error connecting to the database: {e}")
         return None, None
 
-# def get_entity_list_from_db():
-#     """
-#     Fetches the list of entities from the database.
-#     """
-#     try:
-#         conn, cursor = db_connector()
-#         if conn and cursor:
-#             cursor.execute("SELECT entity_name FROM project.entity_info;")
-#             entities = cursor.fetchall()
-#             cursor.close()
-#             conn.close()
-#             entity_names = [entity[0] for entity in entities]
+def get_entity_list_from_db():
+    """
+    Fetches the list of entities from the database.
+    """
+    try:
+        conn, cursor = db_connector()
+        if conn and cursor:
+            cursor.execute("SELECT entity_name FROM project.entity_info;")
+            entities = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            entity_names = [entity[0] for entity in entities]
 
-#             return entity_names
-#         else:
-#             return []
-#     except Exception as e:
-#         logger.error(f"Error fetching entity list: {e}")
-#         return []
+            return entity_names
+        else:
+            return []
+    except Exception as e:
+        logger.error(f"Error fetching entity list: {e}")
+        return []
+
 
 def get_podcast_details_fe():
     """
@@ -66,7 +68,7 @@ def get_podcast_details_fe():
         cursor.execute("""
             SELECT pc_id, pc_topic, pc_participants
             FROM project.podcast_roster
-            WHERE pc_begin_ts >= NOW()
+            WHERE pc_begin_ts between NOW() AND NOW() + INTERVAL '1 hour'
             AND pc_conclusion IS NULL
             ORDER BY pc_begin_ts ASC
             LIMIT 1;
@@ -131,7 +133,7 @@ def collect_variables(pc_id):
         # Ensure transcript file exists
         global transcript_filename
         
-        transcript_filename = f"{pc_id}transcript.txt"
+        transcript_filename = f"static/{pc_id}transcript.txt"
         if not os.path.exists(transcript_filename):
             open(transcript_filename, 'w').close()
 
@@ -195,9 +197,9 @@ def getnextresponse(participant, pc_topic, pc_topic_context, pc_podcast_context,
             model=model_name,
             temperature=0.7,
             presence_penalty= 0.5,
-            frequency_penalty= 0,
-            max_tokens= 50,
-            top_p= 0.9,
+            frequency_penalty= 0.3,
+            max_tokens= 80,
+            top_p= 1,
             n=1,
             messages=[{"role": "system", "content": prompt}]
         )
@@ -210,9 +212,9 @@ def getnextresponse(participant, pc_topic, pc_topic_context, pc_podcast_context,
         logger.info(f"Generated text: {text_chunk}")
 
         # Save text to transcript
-        with open(f"{pc_id}transcript.txt", "a") as file:
+        with open(f"static/{pc_id}transcript.txt", "a") as file:
             # Write the text row
-            file.write(text_chunk)
+            file.write("\n"+ entity_name + " : " + text_chunk)
 
         return (text_chunk, 1)
 
@@ -279,10 +281,10 @@ def update_context(pc_id, participants_data, pc_topic_context, pc_podcast_contex
             response = openai.ChatCompletion.create(
                 model=model_name,
                 temperature=0.7,
-                presence_penalty= -1,
+                presence_penalty= 0.5,
                 frequency_penalty= 0,
                 max_tokens= 110,
-                top_p= 0.85,
+                top_p= 1,
                 n=1,
                 messages=[{"role": "system", "content": summary}]
             )
@@ -344,8 +346,6 @@ def update_conclusion(pc_id, participants_data, pc_topic_context, pc_podcast_con
 
     try:
         # Read the entire transcript
-        # conclusion = podcast_conversation
-        logger.info(f"Podcast transcript: {podcast_conversation}")
 
         # Prepare the conclusion prompt
         conclusion = f"""
@@ -362,7 +362,7 @@ def update_conclusion(pc_id, participants_data, pc_topic_context, pc_podcast_con
             presence_penalty= 1,
             frequency_penalty= 0,
             max_tokens= 110,
-            top_p= 0.9,
+            top_p= 1,
             n=1,
             messages=[{"role": "system", "content": conclusion}]
         )
@@ -388,3 +388,22 @@ def update_conclusion(pc_id, participants_data, pc_topic_context, pc_podcast_con
 
     except Exception as e:
         logger.error(f"Error in conclusion: {e}")
+
+
+# keep pc_topic_context
+
+def getnoresponse():
+    """
+    Generates the no podcast response
+    """
+    try:
+        # Construct the prompt
+        prompt = "Hey there, next postcast is scheduled soon, check the roster"
+
+        logger.info(f"Generated text: {prompt}")
+
+        return (prompt, 1)
+
+    except Exception as e:
+        logger.error(f"Error in getnextresponse: {e}")
+        return ("Error generating response", 0)

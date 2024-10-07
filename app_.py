@@ -1,16 +1,17 @@
-from flask import Flask, render_template, send_file, abort, request, jsonify
+from flask import Flask, redirect, render_template, send_file, abort, request, jsonify, json, url_for
 import os
 import logging
 from speech import run_podcast  # Import the function from speech.py
 
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-from connection_imports import db_connector, get_podcast_details_fe
+from connection_imports import db_connector, get_podcast_details_fe, get_entity_list_from_db
 from flask import session
 from flask_cors import CORS
 from datetime import datetime, timedelta, timezone # Added import for datetime
 import time
 from mutagen.mp3 import MP3
+
 
 # Initialize Flask
 app = Flask(__name__)
@@ -29,34 +30,58 @@ last_comment_fetch_ts = None
 entity_list_global = []
 pc_topic_global = ""
 participants_global = []
+next_run_time_utc = None
 
-# Initialize the scheduler
+
+# single run to fetch details when server runs
+podcast_details = get_podcast_details_fe()
+if podcast_details:
+    current_pc_id, pc_topic_global, participants_global = podcast_details
+    logger.info("podcast details fetched")
+else:
+    current_pc_id = None  # No active podcast
+    pc_topic_global = "No Active Podcast"
+    participants_global = []
+
+#Fetch entity list from the database
+entity_list_global = get_entity_list_from_db()
 
 
 def get_audio_duration(file_path):
     audio = MP3(file_path)
     return audio.info.length
 
-# def scheduled_job():
-#     try:
-#         run_podcast(current_pc_id)
-#     except Exception as e:
-#         logger.error(f"Error in scheduled_job: {e}")
 
-# scheduler.add_job(func=scheduled_job, trigger="interval", seconds=26)
-# scheduler.start()
+###########################################################################################
+################## Main rendering  functions
+###########################################################################################
 
-# draft code
+
+# define scheduled job that RUNS PODCAST
 def scheduled_job():
+
+    global next_run_time_utc
     try:
-        run_podcast(current_pc_id,)
+        is_audio_ready = run_podcast(current_pc_id,)
         
     except Exception as e:
         logger.error(f"Error in scheduled_job: {e}")
 
-    audio_file = 'audio.mp3'
-    duration = get_audio_duration(audio_file)
-    scheduler.add_job(scheduled_job, trigger='date', run_date=datetime.fromtimestamp(time.time() + duration))
+    if is_audio_ready:
+        audio_file = 'static/audio.mp3'
+        duration = get_audio_duration(audio_file)
+
+        internal_run_time_utc = datetime.fromtimestamp(time.time() + duration, tz=timezone.utc)
+
+        next_run_time_utc = datetime.fromtimestamp(time.time() + duration + 5, tz=timezone.utc)
+        print(f"corrected timestamp: {next_run_time_utc}")
+        scheduler.add_job(scheduled_job, trigger='date', run_date= internal_run_time_utc)
+
+    else:
+        logger.info(f"WARNING Audio not ready")
+        scheduler.add_job(func=scheduled_job, trigger="interval", seconds=60)
+        next_run_time_utc = datetime.fromtimestamp(time.time() +  5, tz=timezone.utc)
+
 # scheduler.add_job(func=scheduled_job, trigger="interval", seconds=26)
 
 scheduler = BackgroundScheduler()
@@ -68,23 +93,25 @@ scheduled_job()
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
+
+###########################################################################################
+################## Main rendering  functions
+###########################################################################################
+
 @app.route('/')
 def index():
-    global entity_list_global, current_pc_id, pc_topic_global, participants_global
+    global current_pc_id, pc_topic_global, participants_global
     try:
 
-        # Fetch current podcast details
-        podcast_details = get_podcast_details_fe()
-        if podcast_details:
-            current_pc_id, pc_topic_global, participants_global = podcast_details
-            logger.info("podcast details fetched")
-        else:
-            current_pc_id = None  # No active podcast
-            pc_topic_global = "No Active Podcast"
-            participants_global = []
-
-        # Fetch entity list from the database
-        # entity_list_global = get_entity_list_from_db(current_pc_id)
+        # # Fetch current podcast details
+        # podcast_details = get_podcast_details_fe()
+        # if podcast_details:
+        #     current_pc_id, pc_topic_global, participants_global = podcast_details
+        #     logger.info("podcast details fetched")
+        # else:
+        #     current_pc_id = None  # No active podcast
+        #     pc_topic_global = "No Active Podcast"
+        #     participants_global = []
 
         return render_template('index.html', 
                                entity_list=participants_global, 
@@ -101,43 +128,22 @@ def index():
                                pc_topic=fallback_topic,
                                participants=fallback_participants)
 
-# Flask route to serve the entity list in JSON format (if needed for AJAX)
-@app.route('/get_entity_list')
-def get_entity_list():
-    try:
-        return jsonify(participants_global)
-    except Exception as e:
-        logger.error(f"Error fetching entity list: {e}")
-        return jsonify({"error": "Unable to fetch entity list"}), 500
 
-# Route to serve the audio file and update it using the speech generation function
-# @app.route('/serve_audio')
-# def serve_audio():
-#     try:
-#         logger.info("Audio requested.")
-#         audio_path = "audio.mp3"
-#         if os.path.exists(audio_path):
-#             return send_file(audio_path, mimetype='audio/mp3')
-#         else:
-#             logger.error("Audio file not found!")
-#             abort(404, description="Audio file not found")
-#     except Exception as e:
-#         logger.error(f"Error in serve_audio: {e}")
-#         abort(500, description="Internal Server Error")
+#serve the audio and text stream
 
 @app.route('/serve_audio')
 def serve_audio():
     try:
-        audio_path = "audio.mp3"
+        audio_path = "static/audio.mp3"
 
         if not os.path.exists(audio_path):
             abort(404, description="Audio file not found")
 
-        audio = MP3(audio_path)
-        duration = int(audio.info.length)  # Get the audio duration
+        # audio = MP3(audio_path)
+        # duration = int(audio.info.length)  # Get the audio duration
 
         return jsonify({
-            "next_run_in_sec": duration + 2  # Return the audio duration
+            "next_run_time_utc": next_run_time_utc.isoformat()  # Return the audio duration
         })
 
     except Exception as e:
@@ -146,7 +152,7 @@ def serve_audio():
 
 @app.route('/get_audio_file')
 def get_audio_file():
-    audio_path = "audio.mp3"
+    audio_path = "static/audio.mp3"
     if os.path.exists(audio_path):
         return send_file(audio_path, mimetype='audio/mp3')
     else:
@@ -198,7 +204,6 @@ def post_comment():
         return jsonify({"status": "fail", "message": "Internal Server Error"}), 500
 
 
-
 @app.route('/get_recent_comments', methods=['GET'])
 def get_recent_comments():
     try:
@@ -246,13 +251,14 @@ def get_recent_comments():
 
 
 
+###########################################################################################
+################## Assisting functions BE
+###########################################################################################
 
 
 
-
-
-@app.route('/backend', methods=['GET'])
-def be_index():
+# @app.route('/fetch_podcast_list', methods=['POST'])
+def fetch_podcast_list():
     connection, cursor = db_connector()
     if connection:
         try:
@@ -276,7 +282,7 @@ def be_index():
 
                     pc_participants = json.loads(json.dumps(pc_participants))
 
-                except json.JSONDecodeError:
+                except:
                     pc_participants = []
 
                 podcast_list.append({
@@ -286,6 +292,7 @@ def be_index():
                     "num_participants": num_participants,
                     "pc_participants": pc_participants
                 })
+
         except Exception as e:
             print(f"Error fetching data: {e}")
             entity_options = []
@@ -296,13 +303,24 @@ def be_index():
     else:
         entity_options = []
         podcast_list = []
+
+    return entity_options, podcast_list
+
+
+
+@app.route('/backend', methods=['GET'])
+def be_index():
+
+    entity_options, podcast_list = fetch_podcast_list()
+
     return render_template('backend.html', entities=entity_options, podcasts=podcast_list)
+
 
 @app.route('/add_podcast', methods=['POST'])
 def add_podcast():
     connection, cursor = db_connector()
     if not connection:
-        return redirect(url_for('index'))
+        return redirect(url_for('be_index'))
     
     try:
         pc_begin_ts = request.form['pc_begin_ts']
@@ -337,13 +355,14 @@ def add_podcast():
         cursor.close()
         connection.close()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('be_index'))
+
 
 @app.route('/delete_podcast', methods=['POST'])
 def delete_podcast():
     connection, cursor = db_connector()
     if not connection:
-        return redirect(url_for('index'))
+        return redirect(url_for('be_index'))
     
     try:
         pc_id = request.form['delete_pc_id']
@@ -358,13 +377,14 @@ def delete_podcast():
         cursor.close()
         connection.close()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('be_index'))
+
 
 @app.route('/add_entity', methods=['POST'])
 def add_entity():
     connection, cursor = db_connector()
     if not connection:
-        return redirect(url_for('index'))
+        return redirect(url_for('be_index'))
     
     try:
         entity_id = request.form['entity_id']
@@ -385,13 +405,14 @@ def add_entity():
         cursor.close()
         connection.close()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('be_index'))
+
 
 @app.route('/update_entity', methods=['POST'])
 def update_entity():
     connection, cursor = db_connector()
     if not connection:
-        return redirect(url_for('index'))
+        return redirect(url_for('be_index'))
     
     try:
         entity_id = request.form['update_entity_id']
@@ -416,20 +437,21 @@ def update_entity():
         cursor.close()
         connection.close()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('be_index'))
+
 
 @app.route('/delete_entity', methods=['POST'])
 def delete_entity():
     connection, cursor = db_connector()
     if not connection:
-        return redirect(url_for('index'))
+        return redirect(url_for('be_index'))
     
     try:
         entity_id = request.form['delete_entity_id']
         cursor.execute("""
             DELETE FROM project.entity_info
             WHERE entity_id = %s;
-        """, (entity_id))
+        """, (entity_id,))
         connection.commit()
     except Exception as e:
         print(f"Error deleting entity: {e}")
@@ -437,10 +459,38 @@ def delete_entity():
         cursor.close()
         connection.close()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('be_index'))
 
 
+###########################################################################################
+################## Assisting functions landing
+###########################################################################################
 
+@app.route('/landing', methods=['GET'])
+def landing_index():
+
+    entity_options, podcast_list = fetch_podcast_list()
+
+    return render_template('landing.html', entities=entity_options, podcasts=podcast_list)
+
+
+# Flask route to serve the entity lists in JSON format (if needed for AJAX)
+@app.route('/get_entity_list')
+def get_entity_list():
+    try:
+        return jsonify(participants_global)
+    except Exception as e:
+        logger.error(f"Error fetching entity list: {e}")
+        return jsonify({"error": "Unable to fetch entity list"}), 500
+
+
+@app.route('/get_global_entity_list')
+def get_global_entity_list():
+    try:
+        return jsonify(entity_list_global)
+    except Exception as e:
+        logger.error(f"Error fetching global entity list: {e}")
+        return jsonify({"error": "Unable to fetch global entity list"}), 500
 
 
 if __name__ == '__main__':
