@@ -24,7 +24,7 @@ pc_comment_context = []
 pc_podcast_context = ""
 podcast_conversation = []
 participants_data = []
-max_rounds = 3
+max_rounds = 20
 
 def run_podcast(pc_id):
 

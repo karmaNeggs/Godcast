@@ -14,7 +14,7 @@ body, html {
     justify-content: space-between;
     flex-wrap: wrap;
     /* flex-direction: row; */
-    height: calc(100vh - 200px); /* Adjust based on header height */
+    height: calc(100vh - 125px); /* Adjust based on header height */
     padding: 0.5vh;
     box-sizing: border-box;
     align-items: stretch;

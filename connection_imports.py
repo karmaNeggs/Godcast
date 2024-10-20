@@ -183,14 +183,22 @@ def getnextresponse(participant, pc_topic, pc_topic_context, pc_podcast_context,
             prompt_template = file.read()
 
         # Construct the prompt
-        prompt = f"""
+        prompt_system = f"""
         {prompt_template}
-        Podcast Topic: {pc_topic}
-        Previous talk Context: {pc_podcast_context}
-        Entity Qualities: {entity_qualities}
-        Comment Context: {json.dumps(pc_comment_context)}
+        """
+
+        prompt_user = f"""
         Latest Argument to Respond: {latest_response}
         """
+
+        prompt_assistant = f"""
+        Podcast Topic: {pc_topic}
+        Previous chat Context: {pc_podcast_context}
+        Entity Qualities: {entity_qualities}
+        Comments Context from live users: {json.dumps(pc_comment_context)}
+        """
+
+
 
         # Call OpenAI API
         response = openai.ChatCompletion.create(
@@ -201,7 +209,7 @@ def getnextresponse(participant, pc_topic, pc_topic_context, pc_podcast_context,
             max_tokens= 80,
             top_p= 1,
             n=1,
-            messages=[{"role": "system", "content": prompt}]
+            messages=[{"role": "system", "content": prompt_system}, {"role": "user", "content": prompt_user}, {"role": "assistant", "content": prompt_assistant}]
         )
 
         # Extract text from response
@@ -267,14 +275,19 @@ def update_context(pc_id, participants_data, pc_topic_context, pc_podcast_contex
                 comment_ = []
             
 
-            summary = f"""
+            summary_system = f"""
             {summary_prompt}
+            """
+
+            summary_user = f"""
+            Summarise for following Comments from users:
+            {json.dumps(comment_)}
+            """
+
+            summary_assistant = f"""
             Your_community_name: {entity_id}
             Podcast Topic: {pc_topic_context}
             Podcast_historical_context: {pc_podcast_context}
-            Comments from users:
-            {json.dumps(comment_)}
-
             """
 
             # Call OpenAI API for summary
@@ -286,7 +299,8 @@ def update_context(pc_id, participants_data, pc_topic_context, pc_podcast_contex
                 max_tokens= 110,
                 top_p= 1,
                 n=1,
-                messages=[{"role": "system", "content": summary}]
+                # messages=[{"role": "system", "content": summary}]
+                messages=[{"role": "system", "content": summary_system}, {"role": "user", "content": summary_user}, {"role": "assistant", "content": summary_assistant}]
             )
 
             comment_summary_reply = response.choices[0].message['content'].strip()
@@ -306,8 +320,17 @@ def update_context(pc_id, participants_data, pc_topic_context, pc_podcast_contex
         last_4 = podcast_conversation[-4:]
 
         # Prepare cast summary prompt
-        cast_summary = f"""
+        cast_summary_system = f"""
         {cast_summary_prompt}
+        Podcast topic:
+        {pc_topic_context}
+        Podcast_historical_context:
+        {pc_podcast_context}
+        Last 4 Responses:
+        {'\n'.join(last_4)}
+        """
+
+        cast_summary_assistant = f"""
         Podcast topic:
         {pc_topic_context}
         Podcast_historical_context:
@@ -319,7 +342,9 @@ def update_context(pc_id, participants_data, pc_topic_context, pc_podcast_contex
         # Call OpenAI API for cast summary
         response = openai.ChatCompletion.create(
             model=model_name,
-            messages=[{"role": "system", "content": cast_summary}]
+            # messages=[{"role": "system", "content": cast_summary}]
+            messages=[{"role": "system", "content": cast_summary_system}, {"role": "assistant", "content": cast_summary_assistant}]
+
         )
         cast_summary_reply = response.choices[0].message['content'].strip()
 
@@ -348,8 +373,11 @@ def update_conclusion(pc_id, participants_data, pc_topic_context, pc_podcast_con
         # Read the entire transcript
 
         # Prepare the conclusion prompt
-        conclusion = f"""
+        conclusion_system = f"""
         {conclusion_prompt}
+        """
+
+        conclusion_assistant = f"""
         Transcript of podcast:
         {podcast_conversation}
         Topic of podcast:
@@ -364,7 +392,10 @@ def update_conclusion(pc_id, participants_data, pc_topic_context, pc_podcast_con
             max_tokens= 110,
             top_p= 1,
             n=1,
-            messages=[{"role": "system", "content": conclusion}]
+            # messages=[{"role": "system", "content": conclusion}]
+            messages=[{"role": "system", "content": conclusion_system}, {"role": "assistant", "content": conclusion_assistant}]
+
+            
         )
         
         final_conclusion = response.choices[0].message['content']
