@@ -322,12 +322,6 @@ def update_context(pc_id, participants_data, pc_topic_context, pc_podcast_contex
         # Prepare cast summary prompt
         cast_summary_system = f"""
         {cast_summary_prompt}
-        Podcast topic:
-        {pc_topic_context}
-        Podcast_historical_context:
-        {pc_podcast_context}
-        Last 4 Responses:
-        {'____'.join(last_4)}
         """
 
         cast_summary_assistant = f"""
@@ -336,7 +330,7 @@ def update_context(pc_id, participants_data, pc_topic_context, pc_podcast_contex
         Podcast_historical_context:
         {pc_podcast_context}
         Last 4 Responses:
-        {'\n'.join(last_4)}
+        {'____'.join(last_4)}
         """
 
         # Call OpenAI API for cast summary
