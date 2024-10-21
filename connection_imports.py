@@ -68,8 +68,8 @@ def get_podcast_details_fe():
         cursor.execute("""
             SELECT pc_id, pc_topic, pc_participants
             FROM project.podcast_roster
-            WHERE pc_begin_ts between NOW() AND NOW() + INTERVAL '1 hour'
-            AND pc_conclusion IS NULL
+            WHERE pc_begin_ts > NOW() - INTERVAL '1 hour'
+            and pc_conclusion is not null
             ORDER BY pc_begin_ts ASC
             LIMIT 1;
         """)
