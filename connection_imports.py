@@ -69,7 +69,7 @@ def get_podcast_details_fe():
             SELECT pc_id, pc_topic, pc_participants
             FROM project.podcast_roster
             WHERE pc_begin_ts > NOW() - INTERVAL '1 hour'
-            and pc_conclusion is not null
+            and pc_conclusion is null
             ORDER BY pc_begin_ts ASC
             LIMIT 1;
         """)
