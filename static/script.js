@@ -16,7 +16,12 @@ async function fetchAndPlayAudio() {
         // Schedule the next audio fetch based on the duration
         if (timeUntilNextRun < 0) {
 
-            console.error('Error rendering podcast for timing:', error);   
+            // Fetch and display the text file
+            const response = await fetch(`/get_text_file?ts=${timestamp}`);
+            const newText = await response.text();
+            document.getElementById('dynamicText').innerHTML = '';
+            typeWriter(newText, 0);
+              
         } else {
             setTimeout(fetchAndPlayAudio, timeUntilNextRun);
 
