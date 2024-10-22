@@ -308,7 +308,7 @@ def fetch_podcast_list():
 
 
 
-@app.route('/backend', methods=['GET'])
+@app.route('/backendplatoon', methods=['GET'])
 def be_index():
 
     entity_options, podcast_list = fetch_podcast_list()

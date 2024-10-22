@@ -14,9 +14,9 @@ async function fetchAndPlayAudio() {
         const timeUntilNextRun = nextRunTime.getTime() - now.getTime();  // Calculate time difference in milliseconds
 
         // Schedule the next audio fetch based on the duration
-        if (timeUntilNextRun < 10000) {
+        if (timeUntilNextRun < 0) {
 
-            setTimeout(fetchAndPlayAudio, 2000);
+            console.error('Error rendering podcast for timing:', error);   
         } else {
             setTimeout(fetchAndPlayAudio, timeUntilNextRun);
 
@@ -76,7 +76,7 @@ window.onload = function() {
             fetchAndPlayAudio();
             // updateText();
             // Remove the start button after initiating
-            startButton.remove();
+            // startButton.remove();
             startButton.disabled = true;
             // setInterval(fetchAndPlayAudio, 26000);
             // setInterval(updateText, 26000);
