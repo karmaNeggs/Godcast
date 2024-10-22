@@ -8,7 +8,7 @@ from flask import jsonify
 
 
 # Initialize OpenAI API
-openai.api_key = os.environ.get('OPENAI_API_KEY', '')  # Replace with your actual API key
+openai.api_key = os.environ.get('OPENAI_API_KEY', '# Replace with your actual API key')  # Replace with your actual API key
 model_name = "gpt-4o-mini"  # Ensure this matches the actual model name
 
 logging.basicConfig(level=logging.INFO)
