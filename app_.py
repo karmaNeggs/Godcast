@@ -144,7 +144,7 @@ def serve_audio():
         # duration = int(audio.info.length)  # Get the audio duration
 
         return jsonify({
-            "next_run_time_utc": next_run_time_utc.isoformat();
+            "next_run_time_utc": next_run_time_utc.isoformat(),
             "duration": duration*1000  # Return the audio duration
         })
 
