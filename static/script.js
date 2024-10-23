@@ -10,17 +10,29 @@ async function fetchAndPlayAudio() {
 
         const nextRunTime = new Date(data.next_run_time_utc);  // Parse the next run time correctly
         const now = new Date();  // Current time as a Date object
+        const duration = data.duration
 
         const timeUntilNextRun = nextRunTime.getTime() - now.getTime();  // Calculate time difference in milliseconds
 
         // Schedule the next audio fetch based on the duration
         if (timeUntilNextRun < 0) {
 
+            console.log('duration:', duration);
+            console.log('time to next run:', timeUntilNextRun);
+            console.log('next runtime:', nextRunTime.getTime());
+
+            setTimeout(fetchAndPlayAudio, duration);
+
+            // Fetch and play the actual audio file
+            audio.src = `/get_audio_file?ts=${timestamp}`;
+            await audio.play();
+
             // Fetch and display the text file
             const response = await fetch(`/get_text_file?ts=${timestamp}`);
             const newText = await response.text();
             document.getElementById('dynamicText').innerHTML = '';
             typeWriter(newText, 0);
+
               
         } else {
             setTimeout(fetchAndPlayAudio, timeUntilNextRun);

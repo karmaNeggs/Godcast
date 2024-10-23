@@ -61,6 +61,7 @@ def get_audio_duration(file_path):
 def scheduled_job():
 
     global next_run_time_utc
+    global duration
     try:
         is_audio_ready = run_podcast(current_pc_id,)
         
@@ -143,7 +144,8 @@ def serve_audio():
         # duration = int(audio.info.length)  # Get the audio duration
 
         return jsonify({
-            "next_run_time_utc": next_run_time_utc.isoformat()  # Return the audio duration
+            "next_run_time_utc": next_run_time_utc.isoformat();
+            "duration": duration*1000  # Return the audio duration
         })
 
     except Exception as e:
@@ -493,5 +495,5 @@ def get_global_entity_list():
         return jsonify({"error": "Unable to fetch global entity list"}), 500
 
 
-# if __name__ == '__main__':
-#     app.run(debug=True, use_reloader=False)
+if __name__ == '__main__':
+    app.run(debug=True, use_reloader=False)
